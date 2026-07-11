@@ -100,20 +100,17 @@ heart-disease-mlops/
 
 ```bash
 # 1. Create & activate a virtual environment
-python -m venv venv
-# Windows PowerShell:
-venv\Scripts\Activate.ps1
-# macOS/Linux:
-# source venv/bin/activate
+python3 -m venv venv
+source venv/bin/activate
 
 # 2. Install dependencies
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 
 # 3. Download + clean the dataset
-python data/download_data.py
+python3 data/download_data.py
 
 # 4. Train models (logs to MLflow, saves best model to models/)
-python -m src.train
+python3 -m src.train
 
 # 5. Run the tests
 pytest -v
@@ -125,19 +122,49 @@ uvicorn api.main:app --reload --port 8000
 
 ---
 
-## Pipeline stages
+## Pipeline stages Detailed Breakdown
 
-| # | Stage | Entry point |
-|---|-------|-------------|
-| 1 | Data acquisition + EDA | `python data/download_data.py`, `notebooks/01_eda.ipynb` |
-| 2 | Feature engineering + modelling | `python -m src.train` |
-| 3 | Experiment tracking (MLflow) | `mlflow ui --backend-store-uri sqlite:///mlflow.db` |
-| 4 | Packaging / reproducibility | `models/model.joblib`, `requirements.txt` |
-| 5 | CI/CD + tests | `.github/workflows/ci.yml`, `pytest` |
-| 6 | Containerization | `Dockerfile`, `docker build/run` |
-| 7 | Deployment | `k8s/` manifests + Helm on Minikube |
-| 8 | Monitoring | `/metrics` + Prometheus + Grafana |
-| 9 | Report | `report/` |
+### 1. Data Acquisition + EDA
+- **Script:** `python data/download_data.py` and `notebooks/01_eda.ipynb`
+- **Description:** The dataset (UCI Heart Disease) is downloaded automatically. We analyze missing values (imputed later in the pipeline) and feature distributions. A correlation heatmap identifies strong associations with the target variable, specifically highlighting max heart rate (`thalach`) and ST-depression (`oldpeak`).
+- **Pipeline Run Details:** 
+  ![Correlation Heatmap](notebooks/figures/correlation_heatmap.png)
+  ![Histograms](notebooks/figures/histograms.png)
+
+### 2. Feature Engineering & Modelling
+- **Script:** `python -m src.train`
+- **Description:** All transformations are wrapped in a scikit-learn `ColumnTransformer`. Numeric features get median imputation and `StandardScaler`; categorical features get most-frequent imputation and `OneHotEncoder`. We trained Logistic Regression, Random Forest, and XGBoost using `GridSearchCV` (5-fold CV). Logistic Regression was selected as the best model (Highest Test ROC-AUC of 0.965).
+- **Pipeline Run Details:** 
+  ![Confusion Matrix](screenshots/best_model_confusion.png)
+  ![ROC Curve](screenshots/best_model_roc.png)
+
+### 3. Experiment Tracking (MLflow)
+- **Script:** `mlflow ui --backend-store-uri sqlite:///mlflow.db`
+- **Description:** Every training run is logged to MLflow with a SQLite backend. Hyperparameters, metrics (Accuracy, Precision, Recall, F1, ROC-AUC), and visual plots (ROC curve, confusion matrix) are logged alongside the serialized model artifact.
+- **Pipeline Run Details:** 
+  ![MLflow UI](screenshots/MLflow-1.png)
+  ![MLflow Model](screenshots/MLFLOW-2.png)
+  ![MLflow Details](screenshots/MLFLOW-3.png)
+  ![MLflow Artifacts](screenshots/MLFLOW-4.png)
+
+### 4. Packaging & Reproducibility
+- **Description:** The entire `Pipeline` (preprocessing + classifier) is serialized as a single `model.joblib` artifact. This ensures that the exact same imputation and scaling logic used in training is automatically applied during API inference without manual data wrangling. Dependencies are strictly pinned in `requirements.txt`.
+- **Pipeline Run Details:** 
+  ![Generated Joblib Model Artifacts](screenshots/MLFLOW-4.png)
+
+### 5. CI/CD + Tests
+- **Script:** `.github/workflows/ci.yml`, `pytest`
+- **Description:** An automated GitHub Actions pipeline runs on every push. It executes `flake8` for linting, downloads the dataset, trains the model, runs a comprehensive 15-test `pytest` suite, and then builds and pushes the Docker image to Docker Hub. A separate CD workflow deploys it locally.
+- **Pipeline Run Details:** 
+  ![Pytest Output](screenshots/Pytest.png)
+  ![GitHub Actions CI Workflow](screenshots/CI-5.png)
+  ![GitHub Actions CD Workflow](screenshots/CD.png)
+
+### 6. Containerization
+- **Script:** `Dockerfile`, `docker build`
+- **Description:** The FastAPI application is containerized using a slim `python:3.12-slim` base image. It runs securely as a non-root user and defines a Docker `HEALTHCHECK`. This guarantees that the API serving environment is completely identical regardless of where it is deployed.
+- **Pipeline Run Details:** 
+  ![Docker Hub Image](screenshots/docker-hub-1.png)
 
 ---
 
@@ -174,6 +201,8 @@ curl -X POST http://localhost:8000/predict \
 
 Endpoints: `GET /` · `GET /health` · `POST /predict` · `GET /metrics` · `GET /docs` (Swagger UI).
 
+![Swagger API UI](screenshots/Swagger-API.png)
+
 ---
 
 ## Docker, Kubernetes, CI/CD & Monitoring
@@ -197,6 +226,11 @@ minikube start
 kubectl apply -f k8s/deployment.yaml -f k8s/service.yaml
 minikube service heart-api-service --url
 ```
+
+![Kubernetes Resources](screenshots/Kubectl.png)
+![Minikube Dashboard 1](screenshots/Minikube-1.png)
+![Minikube Dashboard 2](screenshots/MiniKube-2.png)
+![Grafana Monitoring Dashboard](screenshots/Grafana-1.png)
 
 ---
 
