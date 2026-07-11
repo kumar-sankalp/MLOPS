@@ -22,3 +22,6 @@ Thumbs.db
 # retrain in CI and NOT commit binaries.)
 # models/model.joblib
 # models/model_metadata.json
+
+# GitHub Actions Runner
+actions-runner/
