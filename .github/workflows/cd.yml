@@ -1,0 +1,35 @@
+name: CD Pipeline (Deploy to Minikube)
+
+on:
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    name: Deploy to Local Minikube
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Kubernetes
+        run: |
+          # The exact SHA of the commit that triggered the CI pipeline
+          IMAGE_TAG=${{ github.event.workflow_run.head_sha }}
+          IMAGE_NAME="${{ secrets.DOCKERHUB_USERNAME }}/heart-api:${IMAGE_TAG}"
+          
+          echo "Deploying $IMAGE_NAME to Minikube..."
+          
+          # Update deployment.yaml with the new image tag and pull policy
+          sed -i '' "s|image: .*|image: $IMAGE_NAME|" k8s/deployment.yaml
+          sed -i '' "s|imagePullPolicy: Never|imagePullPolicy: Always|" k8s/deployment.yaml
+          
+          # Apply to local Minikube cluster
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
+          
+          # Wait for rollout
+          kubectl rollout status deployment/heart-api --timeout=90s
