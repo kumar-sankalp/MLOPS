@@ -31,5 +31,5 @@ jobs:
           kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
           
-          # Wait for rollout
-          kubectl rollout status deployment/heart-api --timeout=90s
+          # Wait for rollout (increased timeout to 5 minutes for large image pulls)
+          kubectl rollout status deployment/heart-api --timeout=300s

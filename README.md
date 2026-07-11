@@ -178,8 +178,11 @@ Endpoints: `GET /` · `GET /health` · `POST /predict` · `GET /metrics` · `GET
 
 ## Docker, Kubernetes, CI/CD & Monitoring
 
-These stages require tools you install locally (Docker Desktop, Minikube) and a
-GitHub account. In short:
+The CI/CD pipeline (`.github/workflows/ci.yml` and `cd.yml`) automates testing, containerization, and deployment. Upon pushing to `main`:
+1. **CI**: Lints code, trains the model, runs tests, and builds/pushes a Docker image to Docker Hub tagged with the Git commit SHA.
+2. **CD**: Triggers a self-hosted runner on the local machine to pull the new image and deploy it directly to the local Minikube cluster.
+
+Alternatively, you can run these steps manually:
 
 ```bash
 # Docker
@@ -191,8 +194,6 @@ docker compose up --build
 
 # Kubernetes (Minikube)
 minikube start
-minikube docker-env | Invoke-Expression      # PowerShell
-docker build -t heart-api:1.0.0 .
 kubectl apply -f k8s/deployment.yaml -f k8s/service.yaml
 minikube service heart-api-service --url
 ```

@@ -25,3 +25,6 @@ Thumbs.db
 
 # GitHub Actions Runner
 actions-runner/
+
+# Reports
+report/*.docx
