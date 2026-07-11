@@ -1,0 +1,32 @@
+# Version control / IDE
+.git
+.gitignore
+.vscode
+.idea
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# MLflow / experiment artifacts (not needed for serving)
+mlruns/
+mlartifacts/
+mlflow.db
+
+# EDA / notebooks / docs (not needed for serving)
+notebooks/
+report/
+screenshots/
+tests/
+*.ipynb
+
+# Data (model is self-contained; raw data not needed at serving time)
+data/
+
+# Local env
+.env
+venv/
+.venv/

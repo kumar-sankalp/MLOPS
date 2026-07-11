@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: heart-api
+  labels:
+    app: heart-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: heart-api
+  template:
+    metadata:
+      labels:
+        app: heart-api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: heart-api
+          # >>> EDIT THIS <<< push your image to Artifact Registry and paste the full path:
+          #   <REGION>-docker.pkg.dev/<PROJECT_ID>/<REPO>/heart-api:1.0.0
+          # e.g. us-central1-docker.pkg.dev/heart-mlops-123456/heart-repo/heart-api:1.0.0
+          image: REGION-docker.pkg.dev/PROJECT_ID/heart-repo/heart-api:1.0.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
