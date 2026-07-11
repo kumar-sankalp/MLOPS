@@ -91,8 +91,7 @@ heart-disease-mlops/
 ├── docker-compose.yml              # API + Prometheus + Grafana
 ├── requirements.txt / requirements-api.txt
 ├── README.md
-├── PENDING.md                      # manual steps YOU run (GitHub/Docker/K8s/video)
-└── report/                         # final written report
+├── report/                         # final written report
 ```
 
 ---
@@ -180,8 +179,7 @@ Endpoints: `GET /` · `GET /health` · `POST /predict` · `GET /metrics` · `GET
 ## Docker, Kubernetes, CI/CD & Monitoring
 
 These stages require tools you install locally (Docker Desktop, Minikube) and a
-GitHub account. **Full step-by-step instructions with exact commands are in
-[`PENDING.md`](PENDING.md).** In short:
+GitHub account. In short:
 
 ```bash
 # Docker
@@ -212,5 +210,4 @@ minikube service heart-api-service --url
 
 ---
 
-*See [`PENDING.md`](PENDING.md) for the manual GitHub / Docker / Kubernetes /
-monitoring / video steps, and `report/` for the written report.*
+*See the `report/` directory for the detailed written report.*
